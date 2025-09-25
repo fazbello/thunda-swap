@@ -1,0 +1,68 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+input[type=range] {
+    -webkit-appearance: none; /* Remove default styling for WebKit browsers */
+    width: 100%;
+    height: .5vh;
+    border-radius: 5px;
+    background-color: white;
+    outline: none; /* Remove the default focus outline */
+   
+  }
+  
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Remove default styling for WebKit browsers */
+    appearance: none;
+    width: 2vw;
+    height: 2vw;
+    border-radius: 50%;
+    background-color:white;
+    cursor: pointer;
+  }
+  
+  input[type=range]::-moz-range-thumb {
+    appearance: none; /* Remove default styling for Mozilla Firefox */
+    width: 2vw;
+    height: 2vw;
+    border-radius: 50%;
+    background-color: white;
+    cursor: pointer;
+  }
+
+  .question-container {
+    position: relative;
+  }
+  
+  .tooltip {
+    font-size: small;
+    width: 20vw;
+    position: absolute;
+    bottom: 100%; /* Position the tooltip above the image */
+    right: 0%; /* Center the tooltip horizontally */
+    padding: 1vw;
+    background-color: #333;
+    color: #fff;
+    border-radius: 5px;
+    display: none; /* Hide the tooltip by default */
+  }
+
+  .tooltip::before {
+    content: "";
+    position: absolute;
+    top: 100%; /* Position the triangle below the tooltip */
+    left: 50%;
+    border-width: 6px;
+    border-style: solid;
+    border-color: transparent transparent #333 transparent; /* Adjust color to match tooltip background */
+    transform: translateX(-50%);
+  }
+  
+  
+  /* Show the tooltip when hovering over the image container */
+  .question-container:hover .tooltip {
+    display: block;
+  }
+  
