@@ -133,7 +133,7 @@ export const getAllSwaps = async (
 export const getCurrentChain = (): string => {
   // This should be determined based on the connected wallet's network
   // For now, returning a default value, but this should be dynamic
-  return 'Orbiter'; // or whatever the default chain is in your app
+  return 'Unknown'; // or use dynamic value from wallet if desired
 };
 
 // Helper function to format token address for logging
