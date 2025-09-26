@@ -244,6 +244,18 @@ export default function RootLayout({
                   >
                     Liquidity
                   </Link>
+                  <Link
+                    className={path.includes("/history") ? "font-bold" : ""}
+                    href={"/history"}
+                  >
+                    History
+                  </Link>
+                  <Link
+                    className={path.includes("/admin") ? "font-bold" : ""}
+                    href={"/admin"}
+                  >
+                    Admin
+                  </Link>
                 </span>
               </span>
               <span className="relative flex flex-row space-x-[.5vw]">
