@@ -30,6 +30,7 @@ import Link from "next/link";
 import React, { Fragment, use, useEffect, useState } from "react";
 import { useStore } from "../useStore";
 import { ConfirmingToast } from "../components/Toasts/Confirming";
+import { logSwap, getCurrentChain, formatTokenForLogging } from "@/utils/api";
 
 interface Coin {
   name: string;
@@ -107,6 +108,39 @@ export default function Swap() {
   ]);
   const [inputVal, setInputVal] = useState("");
   const [isOpen, setIsOpen] = useState({ show: false, tokenNum: -1 });
+
+  // Helper function to log swap to backend
+  const handleSwapLogging = async (
+    txHash: string,
+    signerAddress: string,
+    fromToken: Coin,
+    toToken: Coin,
+    amount: string
+  ) => {
+    try {
+      const swapData = {
+        user_address: signerAddress,
+        from_chain: getCurrentChain(),
+        to_chain: getCurrentChain(), // Same chain swaps for now
+        from_token: formatTokenForLogging(fromToken),
+        to_token: formatTokenForLogging(toToken),
+        amount: amount,
+        tx_hash: txHash,
+        timestamp: new Date(),
+      };
+
+      const result = await logSwap(swapData);
+      if (result.error) {
+        console.error('Failed to log swap:', result.error);
+        // Don't throw error - logging failure shouldn't break the UI
+      } else {
+        console.log('Swap logged successfully:', result.data);
+      }
+    } catch (error) {
+      console.error('Error in swap logging:', error);
+      // Don't throw error - logging failure shouldn't break the UI
+    }
+  };
 
   const checkApproval = async () => {
     try {
@@ -336,6 +370,15 @@ export default function Swap() {
       setShowToast("confirm");
       await provider.waitForTransaction(await supply.hash).then(
         async () => {
+          // Log the swap to backend
+          await handleSwapLogging(
+            await supply.hash,
+            signerAddress,
+            { name: "SPARQ", symbol: "SPRQ", address: "undefined", image: "/logo.svg" },
+            token1,
+            String(token0Input)
+          );
+
           setToken0Input(0);
           setToken1Input(0);
           const reset1 = document.getElementById(
@@ -384,6 +427,15 @@ export default function Swap() {
       setShowToast("confirm");
       await provider.waitForTransaction(await supply.hash).then(
         async () => {
+          // Log the swap to backend
+          await handleSwapLogging(
+            await supply.hash,
+            signerAddress,
+            token0,
+            { name: "SPARQ", symbol: "SPRQ", address: "undefined", image: "/logo.svg" },
+            String(token0Input)
+          );
+
           setToken0Input(0);
           setToken1Input(0);
           const reset1 = document.getElementById(
@@ -422,6 +474,15 @@ export default function Swap() {
     setShowToast("confirm");
     await provider.waitForTransaction(await txn.hash).then(
       async () => {
+        // Log the swap to backend
+        await handleSwapLogging(
+          await txn.hash,
+          signerAddress,
+          token0,
+          token1,
+          String(token0Input)
+        );
+
         setToken0Input(0);
         setToken1Input(0);
         const reset1 = document.getElementById(
