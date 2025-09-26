@@ -67,9 +67,9 @@ export async function GET(request: NextRequest) {
     // Get filtered swaps with pagination
   //  const swaps = await sql`
   //    SELECT * FROM swaps 
-    //  ${whereClause ? sql.raw(whereClause) : sql``}
-     // ORDER BY created_at DESC 
-    //  LIMIT ${limit} 
+  //    ${whereClause ? sql.raw(whereClause) : sql``}
+  //    ORDER BY created_at DESC 
+  //    LIMIT ${limit} 
     //  OFFSET ${offset}
   //  `;
 
