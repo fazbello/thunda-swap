@@ -1,0 +1,51 @@
+name: Auto PR Thunda Swap Revamp
+
+on:
+  push:
+    branches:
+      - trigger-revamp
+
+jobs:
+  revamp-and-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          if [ -f package.json ]; then npm install; fi
+
+      - name: Run revamp script
+        run: |
+          if [ -f scripts/revamp.js ]; then node scripts/revamp.js; fi
+
+      - name: Create feature branch, commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin
+          git checkout -b feature/thunda-swap-revamp
+          git add -A
+          git diff --cached --quiet || git commit -m "Automated Thunda Swap revamp"
+          git push origin feature/thunda-swap-revamp --force
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: feature/thunda-swap-revamp
+          base: main
+          title: "Thunda Swap Revamp"
+          body: |
+            Automated PR for Thunda Swap revamp:
+            - Orbiter-style swap feature UI/UX and backend
+            - Supported chains, tokens, and bridging
+            - Thunda Swap branding
+            - Netlify deployment config
+            - Comprehensive admin backend
