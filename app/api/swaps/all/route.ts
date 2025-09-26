@@ -11,11 +11,17 @@ const ensureInitialized = async () => {
   }
 };
 
+// Helper for dynamic WHERE building
+function buildWhere(whereConditions: string[]) {
+  if (whereConditions.length === 0) return '';
+  return 'WHERE ' + whereConditions.join(' AND ');
+}
+
 // GET /api/swaps/all - Get all swaps with enhanced filtering and stats (admin endpoint)
 export async function GET(request: NextRequest) {
   try {
     await ensureInitialized();
-    
+
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '100');
     const offset = parseInt(searchParams.get('offset') || '0');
@@ -26,7 +32,7 @@ export async function GET(request: NextRequest) {
     const to_date = searchParams.get('to_date');
 
     // Build dynamic query with filters
-    let whereConditions = [];
+    let whereConditions: string[] = [];
     let queryParams: any[] = [];
     let paramIndex = 1;
 
@@ -35,54 +41,50 @@ export async function GET(request: NextRequest) {
       queryParams.push(from_chain);
       paramIndex++;
     }
-
     if (to_chain) {
       whereConditions.push(`to_chain = $${paramIndex}`);
       queryParams.push(to_chain);
       paramIndex++;
     }
-
     if (user_address) {
       whereConditions.push(`LOWER(user_address) = LOWER($${paramIndex})`);
       queryParams.push(user_address);
       paramIndex++;
     }
-
     if (from_date) {
       whereConditions.push(`created_at >= $${paramIndex}`);
       queryParams.push(from_date);
       paramIndex++;
     }
-
     if (to_date) {
       whereConditions.push(`created_at <= $${paramIndex}`);
       queryParams.push(to_date);
       paramIndex++;
     }
 
-    const whereClause = whereConditions.length > 0 
-      ? `WHERE ${whereConditions.join(' AND ')}`
-      : '';
+    const whereClause = buildWhere(whereConditions);
 
-    // Get filtered swaps with pagination
-    const swaps = await sql`
-      SELECT * FROM swaps 
-      ${whereClause ? sql.raw(whereClause) : sql``}
-      ORDER BY created_at DESC 
-      LIMIT ${limit} 
-      OFFSET ${offset}
+    // 1. Get filtered swaps with pagination
+    const swapsQuery = `
+      SELECT * FROM swaps
+      ${whereClause}
+      ORDER BY created_at DESC
+      LIMIT $${paramIndex}
+      OFFSET $${paramIndex + 1}
     `;
+    const swaps = await sql(swapsQuery, [...queryParams, limit, offset]);
 
-    // Get total count with same filters
-    const countResult = await sql`
-      SELECT COUNT(*) as total FROM swaps 
-      ${whereClause ? sql.raw(whereClause) : sql``}
+    // 2. Get total count with same filters
+    const countQuery = `
+      SELECT COUNT(*) as total FROM swaps
+      ${whereClause}
     `;
-    const total = parseInt(countResult[0].total);
+    const countResult = await sql(countQuery, queryParams);
+    const total = parseInt(countResult[0]?.total || '0');
 
-    // Get additional stats
-    const stats = await sql`
-      SELECT 
+    // 3. Get additional stats
+    const statsQuery = `
+      SELECT
         COUNT(*) as total_swaps,
         COUNT(DISTINCT user_address) as unique_users,
         COUNT(DISTINCT from_chain) as unique_from_chains,
@@ -90,20 +92,22 @@ export async function GET(request: NextRequest) {
         MIN(created_at) as first_swap_date,
         MAX(created_at) as latest_swap_date
       FROM swaps
-      ${whereClause ? sql.raw(whereClause) : sql``}
+      ${whereClause}
     `;
+    const stats = await sql(statsQuery, queryParams);
 
-    // Get top chains by volume
-    const topChains = await sql`
-      SELECT 
+    // 4. Get top chains by volume
+    const topChainsQuery = `
+      SELECT
         from_chain as chain,
         COUNT(*) as swap_count
       FROM swaps
-      ${whereClause ? sql.raw(whereClause) : sql``}
+      ${whereClause}
       GROUP BY from_chain
       ORDER BY swap_count DESC
       LIMIT 10
     `;
+    const topChains = await sql(topChainsQuery, queryParams);
 
     return NextResponse.json({
       swaps,
