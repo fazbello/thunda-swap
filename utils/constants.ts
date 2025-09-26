@@ -33,3 +33,21 @@ export const compareHex = (a: string, b: string) => {
   if (numA > numB) return 1;
   return 0;
 };
+// ...other exports
+
+// Example: list of tokens per chainId (fill in with real tokens for your app!)
+export const TokenLists: { [chainId: number]: Array<{ address: string, symbol: string, name: string, decimals: number, image?: string }> } = {
+  1: [
+    { address: "0x6B175474E89094C44Da98b954EedeAC495271d0F", symbol: "DAI", name: "Dai Stablecoin", decimals: 18 },
+    { address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", symbol: "USDC", name: "USD Coin", decimals: 6 },
+    // ...more Ethereum tokens
+  ],
+  56: [
+    { address: "0xe9e7cea3dedca5984780bafc599bd69add087d56", symbol: "BUSD", name: "Binance USD", decimals: 18 },
+    { address: "0x55d398326f99059fF775485246999027B3197955", symbol: "USDT", name: "Tether USD", decimals: 18 },
+    // ...more BSC tokens
+  ],
+  // Add other chains as needed
+};
+
+// ...more exports as needed
