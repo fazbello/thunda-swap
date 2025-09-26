@@ -1,11 +1,19 @@
 import { useState } from "react";
+import { TokenLists } from "@/utils/constants";
 import { ethers } from "ethers";
 import ERC20Abi from "../../abis/ERC20.json"; // adjust path as needed
 
-export function TokenSelector({ chainId, onSelectToken }) {
+// Explicitly type the props
+export function TokenSelector({
+  chainId,
+  onSelectToken,
+}: {
+  chainId: number | undefined;
+  onSelectToken: (token: any) => void;
+}) {
   const [search, setSearch] = useState("");
   const [customToken, setCustomToken] = useState<any>(null);
-  const tokenList = TokenLists[chainId] || [];
+  const tokenList = chainId ? TokenLists[chainId] || [] : [];
 
   async function handleCustomAddress(address: string) {
     try {
@@ -39,7 +47,10 @@ export function TokenSelector({ chainId, onSelectToken }) {
           </button>
         )}
         {tokenList
-          .filter(token => token.symbol.toLowerCase().includes(search.toLowerCase()) || token.name.toLowerCase().includes(search.toLowerCase()))
+          .filter(token =>
+            token.symbol.toLowerCase().includes(search.toLowerCase()) ||
+            token.name.toLowerCase().includes(search.toLowerCase())
+          )
           .map(token => (
             <button key={token.address} onClick={() => onSelectToken(token)}>
               {token.symbol} ({token.name})
