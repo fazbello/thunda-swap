@@ -109,6 +109,21 @@ export default function Swap() {
   const [inputVal, setInputVal] = useState("");
   const [isOpen, setIsOpen] = useState({ show: false, tokenNum: -1 });
 
+  // Helper function to safely check if ethereum is available
+  const isEthereumAvailable = (): boolean => {
+    return typeof window !== 'undefined' && window.ethereum;
+  };
+
+  // Helper function to safely get provider and signer
+  const getSafeProvider = async () => {
+    if (!isEthereumAvailable()) {
+      throw new Error('Ethereum provider not available');
+    }
+    const provider = new ethers.BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
+    return { provider, signer };
+  };
+
   // Helper function to log swap to backend
   const handleSwapLogging = async (
     txHash: string,
@@ -143,9 +158,13 @@ export default function Swap() {
   };
 
   const checkApproval = async () => {
+    if (!isEthereumAvailable()) {
+      console.log('Ethereum not available for approval check');
+      return;
+    }
+    
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
+      const { provider, signer } = await getSafeProvider();
       const signerAddress = await signer.getAddress();
 
       const token0Contract = new ethers.Contract(token0.address, ERC20, signer);
@@ -191,9 +210,14 @@ export default function Swap() {
   };
 
   const checkApprovalNative = async () => {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const signerAddress = await signer.getAddress();
+    if (!isEthereumAvailable()) {
+      console.log('Ethereum not available for native approval check');
+      return;
+    }
+    
+    try {
+      const { provider, signer } = await getSafeProvider();
+      const signerAddress = await signer.getAddress();
     if (token0.address === "undefined") {
       const token1Contract = new ethers.Contract(token1.address, ERC20, signer);
       const token1Allowance = await token1Contract!.allowance(
@@ -229,12 +253,20 @@ export default function Swap() {
         setNeedsApproval(false);
       }
     }
+    } catch (error) {
+      console.log('Error in checkApprovalNative:', error);
+    }
   };
 
   const calcOutAmount = async () => {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const signerAddress = await signer.getAddress();
+    if (!isEthereumAvailable()) {
+      console.log('Ethereum not available for calculating output amount');
+      return;
+    }
+    
+    try {
+      const { provider, signer } = await getSafeProvider();
+      const signerAddress = await signer.getAddress();
 
     const FactoryContract = new ethers.Contract(
       factory_address,
@@ -330,12 +362,21 @@ export default function Swap() {
     const impact = pricePaid / bestPrice;
 
     setImpact(Number((impact * 100).toFixed(3)));
+    } catch (error) {
+      console.log('Error calculating output amount:', error);
+      setImpact(0);
+    }
   };
 
   const swap = async () => {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const signerAddress = await signer.getAddress();
+    if (!isEthereumAvailable()) {
+      console.log('Ethereum not available for swap');
+      return;
+    }
+    
+    try {
+      const { provider, signer } = await getSafeProvider();
+      const signerAddress = await signer.getAddress();
 
     const RouterContract = new ethers.Contract(
       RouterAddress,
@@ -498,12 +539,19 @@ export default function Swap() {
       },
       (err) => console.log(err)
     );
+    } catch (error) {
+      console.log('Error during swap:', error);
+    }
   };
 
   const approveTokens = async () => {
+    if (!isEthereumAvailable()) {
+      console.log('Ethereum not available for token approval');
+      return;
+    }
+    
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
+      const { provider, signer } = await getSafeProvider();
       const signerAddress = await signer.getAddress();
 
       const token0Contract = new ethers.Contract(token0.address, ERC20, signer);
@@ -586,9 +634,14 @@ export default function Swap() {
   };
 
   const approveForNative = async () => {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const signerAddress = await signer.getAddress();
+    if (!isEthereumAvailable()) {
+      console.log('Ethereum not available for native approval');
+      return;
+    }
+    
+    try {
+      const { provider, signer } = await getSafeProvider();
+      const signerAddress = await signer.getAddress();
     let caughtError: boolean = false;
     if (token0.address === "undefined") {
       const token1Contract = new ethers.Contract(token1.address, ERC20, signer);
@@ -636,6 +689,9 @@ export default function Swap() {
         });
       }
     }
+    } catch (error) {
+      console.log('Error in approveForNative:', error);
+    }
   };
 
   const chooseTokenFunction = async (coin: Coin) => {
@@ -662,9 +718,13 @@ export default function Swap() {
   };
 
   const getBalance = async () => {
+    if (!isEthereumAvailable()) {
+      console.log('Ethereum not available for getting balance');
+      return;
+    }
+    
     try {
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
+      const { provider, signer } = await getSafeProvider();
       const signerAddress = await signer.getAddress();
 
       if (isOpen.tokenNum === 0) {
@@ -773,14 +833,22 @@ export default function Swap() {
   };
 
   const getNativeBalance = async () => {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
-    const signerAddress = await signer.getAddress();
+    if (!isEthereumAvailable()) {
+      console.log('Ethereum not available for getting native balance');
+      return;
+    }
+    
+    try {
+      const { provider, signer } = await getSafeProvider();
+      const signerAddress = await signer.getAddress();
 
     await provider.getBalance(signerAddress).then(
       (ret) => setToken0Balance(Number(ethers.formatEther(ret))),
       (error) => console.log(error)
     );
+    } catch (error) {
+      console.log('Error getting native balance:', error);
+    }
   };
 
   useEffect(() => {

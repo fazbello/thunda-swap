@@ -14,26 +14,52 @@ export default function Wrap() {
   const [toastTxnHash, setToastTxnHash] = useState("");
   const [isPopulated, setIsPopulated] = useState(false);
 
-  const wrap = async () => {
+  // Helper function to safely check if ethereum is available
+  const isEthereumAvailable = (): boolean => {
+    return typeof window !== 'undefined' && window.ethereum;
+  };
+
+  // Helper function to safely get provider and signer
+  const getSafeProvider = async () => {
+    if (!isEthereumAvailable()) {
+      throw new Error('Ethereum provider not available');
+    }
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
+    return { provider, signer };
+  };
 
-    const wrapperContract = new ethers.Contract(
-      WrapperAddress,
-      NativeWrapper,
-      signer
-    );
+  const wrap = async () => {
+    if (!isEthereumAvailable()) {
+      console.log('Ethereum not available for wrap');
+      return;
+    }
+    
+    try {
+      const { provider, signer } = await getSafeProvider();
 
-    const txn = await wrapperContract
-      .deposit({ value: ethers.parseUnits(String(WrapperInput), "ether") })
-      .catch((err) => {
-        console.log(err);
-      });
-    setToastTxnHash(await txn.hash);
-    setShowToast("confirm");
-    await provider
-      .waitForTransaction(txn.hash)
-      .finally(async () => await balance());
+      const wrapperContract = new ethers.Contract(
+        WrapperAddress,
+        NativeWrapper,
+        signer
+      );
+
+      const txn = await wrapperContract
+        .deposit({ value: ethers.parseUnits(String(WrapperInput), "ether") })
+        .catch((err) => {
+          console.log(err);
+        });
+      
+      if (txn && txn.hash) {
+        setToastTxnHash(await txn.hash);
+        setShowToast("confirm");
+        await provider
+          .waitForTransaction(txn.hash)
+          .finally(async () => await balance());
+      }
+    } catch (error) {
+      console.log('Error during wrap:', error);
+    }
   };
 
   const checkIsPopulated = async () => {
@@ -52,41 +78,63 @@ export default function Wrap() {
   };
 
   const unWrap = async () => {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
+    if (!isEthereumAvailable()) {
+      console.log('Ethereum not available for unwrap');
+      return;
+    }
+    
+    try {
+      const { provider, signer } = await getSafeProvider();
 
-    const wrapperContract = new ethers.Contract(
-      WrapperAddress,
-      NativeWrapper,
-      signer
-    );
+      const wrapperContract = new ethers.Contract(
+        WrapperAddress,
+        NativeWrapper,
+        signer
+      );
 
     const txn = await wrapperContract
       .withdraw(ethers.parseUnits(String(WrapperInput), "ether"))
       .catch((err) => {
         console.log(err);
       });
-    setToastTxnHash(await txn.hash);
-    setShowToast("confirm");
-    await provider
-      .waitForTransaction(txn.hash)
-      .finally(async () => await balance());
+    
+    if (txn && txn.hash) {
+      setToastTxnHash(await txn.hash);
+      setShowToast("confirm");
+      await provider
+        .waitForTransaction(txn.hash)
+        .finally(async () => await balance());
+    }
+    } catch (error) {
+      console.log('Error during unwrap:', error);
+    }
   };
 
   const balance = async () => {
-    const provider = new ethers.BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
+    if (!isEthereumAvailable()) {
+      console.log('Ethereum not available for balance check');
+      return;
+    }
+    
+    try {
+      const { provider, signer } = await getSafeProvider();
 
-    const wrapperContract = new ethers.Contract(
-      WrapperAddress,
-      NativeWrapper,
-      signer
-    );
+      const wrapperContract = new ethers.Contract(
+        WrapperAddress,
+        NativeWrapper,
+        signer
+      );
 
     const ret = await wrapperContract.balanceOf(signer.address).catch((err) => {
       console.log(err);
     });
-    setWrappedBalance(String(ethers.formatEther(await ret)));
+    
+    if (ret) {
+      setWrappedBalance(String(ethers.formatEther(await ret)));
+    }
+    } catch (error) {
+      console.log('Error getting balance:', error);
+    }
   };
 
   useEffect(() => {
