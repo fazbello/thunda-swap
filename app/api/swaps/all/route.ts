@@ -65,20 +65,20 @@ export async function GET(request: NextRequest) {
       : '';
 
     // Get filtered swaps with pagination
-  //  const swaps = await sql`
-  //    SELECT * FROM swaps 
-  //    ${whereClause ? sql.raw(whereClause) : sql``}
-  //    ORDER BY created_at DESC 
-  //    LIMIT ${limit} 
-    //  OFFSET ${offset}
-  //  `;
+    const swaps = await sql`
+      SELECT * FROM swaps 
+      ${whereClause ? sql.raw(whereClause) : sql``}
+      ORDER BY created_at DESC 
+      LIMIT ${limit} 
+      OFFSET ${offset}
+    `;
 
     // Get total count with same filters
-//    const countResult = await sql`
-  //    SELECT COUNT(*) as total FROM swaps 
-  //    ${whereClause ? sql.raw(whereClause) : sql``}
- //   `;
- //   const total = parseInt(countResult[0].total);
+    const countResult = await sql`
+      SELECT COUNT(*) as total FROM swaps 
+      ${whereClause ? sql.raw(whereClause) : sql``}
+    `;
+    const total = parseInt(countResult[0].total);
 
     // Get additional stats
     const stats = await sql`
