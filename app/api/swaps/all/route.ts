@@ -74,11 +74,11 @@ export async function GET(request: NextRequest) {
   //  `;
 
     // Get total count with same filters
-    const countResult = await sql`
-      SELECT COUNT(*) as total FROM swaps 
-      ${whereClause ? sql.raw(whereClause) : sql``}
-    `;
-    const total = parseInt(countResult[0].total);
+//    const countResult = await sql`
+  //    SELECT COUNT(*) as total FROM swaps 
+  //    ${whereClause ? sql.raw(whereClause) : sql``}
+ //   `;
+ //   const total = parseInt(countResult[0].total);
 
     // Get additional stats
     const stats = await sql`
