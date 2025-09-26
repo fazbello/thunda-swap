@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { RouterAddresses, FactoryAddresses } from "@/utils/constants";
 import { TokenSelector } from "../components/TokenSelector";
