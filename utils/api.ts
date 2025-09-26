@@ -129,11 +129,38 @@ export const getAllSwaps = async (
   }
 };
 
-// Helper function to determine the current chain (you may need to adjust this based on your setup)
+// Helper function to determine the current chain (works with any network)
 export const getCurrentChain = (): string => {
-  // This should be determined based on the connected wallet's network
-  // For now, returning a default value, but this should be dynamic
-  return 'Orbiter'; // or whatever the default chain is in your app
+  // Try to get the chain from the window.ethereum if available
+  if (typeof window !== 'undefined' && window.ethereum) {
+    try {
+      const chainId = window.ethereum.chainId;
+      if (chainId) {
+        const chainIdNumber = parseInt(chainId, 16);
+        // Map common chain IDs to names
+        switch (chainIdNumber) {
+          case 1:
+            return 'Ethereum';
+          case 5:
+            return 'Goerli';
+          case 11155111:
+            return 'Sepolia';
+          case 137:
+            return 'Polygon';
+          case 80001:
+            return 'Mumbai';
+          case 808080:
+            return 'Orbiter';
+          default:
+            return `Chain ${chainIdNumber}`;
+        }
+      }
+    } catch (error) {
+      console.log('Could not get chain info:', error);
+    }
+  }
+  // Default fallback - works for any network
+  return 'Unknown';
 };
 
 // Helper function to format token address for logging
