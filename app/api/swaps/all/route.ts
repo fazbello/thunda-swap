@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { sql, initDatabase } from '@/utils/db';
 
-// Initialize database on first request
 let isInitialized = false;
 
 const ensureInitialized = async () => {
@@ -11,13 +10,11 @@ const ensureInitialized = async () => {
   }
 };
 
-// Helper for dynamic WHERE building
 function buildWhere(whereConditions: string[]) {
   if (whereConditions.length === 0) return '';
   return 'WHERE ' + whereConditions.join(' AND ');
 }
 
-// GET /api/swaps/all - Get all swaps with enhanced filtering and stats (admin endpoint)
 export async function GET(request: NextRequest) {
   try {
     await ensureInitialized();
@@ -31,7 +28,6 @@ export async function GET(request: NextRequest) {
     const from_date = searchParams.get('from_date');
     const to_date = searchParams.get('to_date');
 
-    // Build dynamic query with filters
     let whereConditions: string[] = [];
     let queryParams: any[] = [];
     let paramIndex = 1;
@@ -72,14 +68,14 @@ export async function GET(request: NextRequest) {
       LIMIT $${paramIndex}
       OFFSET $${paramIndex + 1}
     `;
-    const swaps = await sql(swapsQuery, [...queryParams, limit, offset]);
+    const swaps = await sql.query(swapsQuery, [...queryParams, limit, offset]);
 
     // 2. Get total count with same filters
     const countQuery = `
       SELECT COUNT(*) as total FROM swaps
       ${whereClause}
     `;
-    const countResult = await sql(countQuery, queryParams);
+    const countResult = await sql.query(countQuery, queryParams);
     const total = parseInt(countResult[0]?.total || '0');
 
     // 3. Get additional stats
@@ -94,7 +90,7 @@ export async function GET(request: NextRequest) {
       FROM swaps
       ${whereClause}
     `;
-    const stats = await sql(statsQuery, queryParams);
+    const stats = await sql.query(statsQuery, queryParams);
 
     // 4. Get top chains by volume
     const topChainsQuery = `
@@ -107,7 +103,7 @@ export async function GET(request: NextRequest) {
       ORDER BY swap_count DESC
       LIMIT 10
     `;
-    const topChains = await sql(topChainsQuery, queryParams);
+    const topChains = await sql.query(topChainsQuery, queryParams);
 
     return NextResponse.json({
       swaps,
