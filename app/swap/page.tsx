@@ -11,8 +11,8 @@ import FactoryAbi from "../../abis/Factory.json";
 async function getContracts() {
   const provider = new ethers.BrowserProvider(window.ethereum);
   const { chainId } = await provider.getNetwork();
-  const routerAddress = RouterAddresses[chainId];
-  const factoryAddress = FactoryAddresses[chainId];
+  const routerAddress = RouterAddresses[Number(chainId)];
+  const factoryAddress = FactoryAddresses[Number(chainId)];
   const RouterContract = new ethers.Contract(routerAddress, RouterAbi, provider);
   const FactoryContract = new ethers.Contract(factoryAddress, FactoryAbi, provider);
   return { RouterContract, FactoryContract };
