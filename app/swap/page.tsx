@@ -1,5 +1,11 @@
+import { useState, useEffect } from "react";
 import { RouterAddresses, FactoryAddresses } from "@/utils/constants";
+import { TokenSelector } from "../components/TokenSelector";
+import { ethers } from "ethers";
+import RouterAbi from "../../abis/Router.json";
+import FactoryAbi from "../../abis/Factory.json";
 
+// Helper function to get current contracts based on chainId
 async function getContracts() {
   const provider = new ethers.BrowserProvider(window.ethereum);
   const { chainId } = await provider.getNetwork();
@@ -8,9 +14,7 @@ async function getContracts() {
   const RouterContract = new ethers.Contract(routerAddress, RouterAbi, provider);
   const FactoryContract = new ethers.Contract(factoryAddress, FactoryAbi, provider);
   return { RouterContract, FactoryContract };
-
-import { useState, useEffect } from "react";
-import { TokenSelector } from "../components/TokenSelector";
+}
 
 export default function SwapPage() {
   const [chainId, setChainId] = useState<number>();
